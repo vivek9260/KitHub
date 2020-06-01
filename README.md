@@ -1,4 +1,9 @@
 #GitHub Search
+## Project Members: 
+   - Jade Cock
+   - Vivek Chalumuri
+   - Stavros Giorgis
+   - Romina Arriaza Barriga 
 
 ## System requirements
    - Python 3.6 or later
