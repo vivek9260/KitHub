@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+    <meta charset="UTF-8">
+    <title>GitHub Search</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <nav>
+        <div class="nav-wrapper">
+            <div class="row">
+                <div class="col s12">
+                    <a href="#sidenav-2" data-target="sidenav-2" class="sidenav-trigger show-on-medium-and-up"><i
+                            class="material-icons">menu</i></a>
+                    <a href="https://codepen.io/collection/nbBqgY" target="_blank" class="center brand-logo">KiTHub</a>
+                </div>
+            </div>
+        </div>
+    </nav>
+</head>
+
+
+<ul id="sidenav-2" class="sidenav">
+    <img class="materialboxed" width="300" src="{{url_for('static', filename='puppy-coding.jpg')}}">
+    <li><a class="subheader">Do you need help?</a></li>
+    <p style="color:black">How does the sorting work?</p>
+    <p style="color:gray">The retrieved files are ordered with a specific function implemented by elasticsearch which
+        computes the similarity between the query and the characteristics of the classes, methods and descriptions
+        inside each repository.</p>
+    <p style="color:black">Can I retrieve the files with a different retrieval scoring?</p>
+    <p style="color:gray">Of course! Before the results are displayed, it is possible to select one of the checkboxs
+        below "Sort by:" and reorder the results respect the selected feature.</p>
+    <p style="color:black">What is "Advanced Search"?</p>
+    <p style="color:gray">In you want to be more specific with your search, that is, specific method, arguments,
+        output type and modifiers, you can add this features in the different fields provided. The results will
+        obey the exact specifications. </p>
+    <p style="color:black">What is the difference between "Normal Search" and "Advanced Search"?</p>
+    <p style="color:gray">If you do not have any specifications about the function you are looking for, such as
+        output type, arguments, among others, you can insert key words associated to what you are looking for.
+        For instance, if you are interested in "sort" functions, no matter the specifics, by inserting this word the
+        search Engine will provide all the different types of sorting functions inside the dataset.</p>
+    <p style="color:black">What is the information the searcher is retrieving?</p>
+    <p style="color:gray">After the search is done, the page will display below boxes with the results of the query.
+        Inside each box you can find: Function of interest, repository name where this method was found and the url that
+        will take you to the repository by clicking it.</p>
+</ul>
+
+
+<body>
+<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vue-resource@1.5.1"></script>
+<script type="text/javascript"
+        src="https://cdn.rawgit.com/pinzon1992/materialize_table_pagination/f9a8478f/js/pagination.js"></script>
+
+<script>
+    $(document).ready(function () {
+        $('.tabs').tabs();
+    });
+    $(document).ready(function () {
+        $('.datepicker').datepicker();
+    });
+    $(document).ready(function () {
+        $('.sidenav').sidenav();
+    });
+</script>
+
+<h4 style="text-align:center;" class="red-text text-darken-4">Searcher for GitHub repositories</h4>
+
+<div id="app">
+    <!--TABS-->
+    <div class="row">
+        <div class="col s8 offset-s2">
+            <ul class="tabs">
+                <li class="tab col s6"><a class="active" href="#test1">Normal Search</a></li>
+                <li class="tab col s6"><a href="#test2">Advanced Search</a>
+                </li>
+            </ul>
+        </div>
+        <div id="test1">
+            <div class="col s8 offset-s2">
+                <nav>
+                    <div class="nav-wrapper teal accent-4">
+                        <form>
+                            <div class="input-field">
+                                <input id="search" type="search" v-model="query" required>
+                                <label class="label-icon" for="search"><i class="material-icons">search</i></label>
+                                <i class="material-icons">close</i>
+                            </div>
+                        </form>
+                    </div>
+                </nav>
+                <p style="color:gray" align="left">Example: quicksort, binary search, ...</p>
+            </div>
+            <div class="row">
+                <div class="col s2 offset-s2">
+                    <p>Sort by:</p>
+                </div>
+            </div>
+            <div class="row">
+                <form class="col s2 offset-s2" action="#">
+                    <p>
+                        <label>
+                            <input id="score" type="radio" value="score" v-model="checked"/>
+                            <span>Normal Score</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="fork" type="radio" value="forks" v-model="checked"/>
+                            <span>Number of forks</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="watch" type="radio" value="watchers" v-model="checked"/>
+                            <span>Number of watchers</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="star" type="radio" value="stars" v-model="checked"/>
+                            <span>Number of stars</span>
+                        </label>
+                    </p>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col s2 offset-s2">
+                    <div v-on:click="search" class="waves-effect waves-light btn left">Search</div>
+                </div>
+            </div>
+        </div>
+        <div id="test2">
+            <div class="col s6 offset-s3 center-align">
+                <form>
+                     <input id="query" type="text" class="validate" v-model="query_str">
+                    <label for="query">Query (query)</label>
+                    <input id="method" type="text" class="validate" v-model="query_method">
+                    <label for="method">Method (bubblesort, writefile, ...)</label>
+                    <input id="output" type="text" class="validate" v-model="query_out">
+                    <label for="output">Output Type (double, integer, ArrayList, ...)</label>
+                    <input id="arg" type="text" class="validate" v-model="query_arg">
+                    <label for="arg">Argument Type (double, int[], List, ...)</label>
+                    <input id="mod" type="text" class="validate" v-model="query_mod">
+                    <label for="mod">Modifier (Static, Public, ...)</label>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col s2 offset-s2">
+                    <p>Sort by:</p>
+                </div>
+            </div>
+            <div class="row">
+                <form class="col s2 offset-s2" action="#">
+                    <p>
+                        <label>
+                            <input id="score2" type="radio" value="score" v-model="checked"/>
+                            <span>Normal Score</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="fork2" type="radio" value="forks" v-model="checked"/>
+                            <span>Number of forks</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="watch2" type="radio" value="watchers" v-model="checked"/>
+                            <span>Number of watchers</span>
+                        </label>
+                    </p>
+                </form>
+                <form class="col s2" action="#">
+                    <p>
+                        <label>
+                            <input id="star2" type="radio" value="stars" v-model="checked"/>
+                            <span>Number of stars</span>
+                        </label>
+                    </p>
+                </form>
+            </div>
+            <div class="row">
+                <div class="col s2 offset-s2">
+                    <div v-on:click="search2" class="waves-effect waves-light btn left">Search</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col s8 offset-s2">
+            <div class="progress">
+                <div v-bind:class="{indeterminate: searching == true, determinate: searching == false }"></div>
+            </div>
+        </div>
+    </div>
+    <div class="row" v-for="s in response">
+        <div class="col s8 offset-s2">
+            <div class="card teal lighten-5">
+                <div class="card-content">
+                    <span class="card-title teal-text">Author/Repo name: [[s.repo_name]]</span>
+                    <p>Score: [[s.score]], Forks: [[s.forks]], Stars: [[s.stars]], Watchers: [[s.watchers]]</p>
+                    <div style="https://github.com/WonwoongCho/Generative-Inpainting-pytorch.git;overflow:auto;" v-html="s.html"></div>
+                </div>
+                <div class="card-action">
+                    <a :href="s.url">URL</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <ul class="pagination center-align" id="pages">
+        <li class="disabled"><a href="#!"><i class="material-icons">chevron_left</i></a></li>
+        <li class="active"><a href="#!">1</a></li>
+        <li class="waves-effect"><a href="#!">2</a></li>
+        <li class="waves-effect"><a href="#!">3</a></li>
+        <li class="waves-effect"><a href="#!">4</a></li>
+        <li class="waves-effect"><a href="#!">5</a></li>
+        <li class="waves-effect"><a href="#!"><i class="material-icons">chevron_right</i></a></li>
+    </ul>
+</div>
+
+<!--FOOT-->
+<div class="row">
+    <div class="rcol s12 offset-s2">
+        <div class="col s4 offset-s2 center-align">
+            <div class="card blue-grey darken-1">
+                <div class="card-content white-text">
+                    <span class="card-title">GitHub Project</span>
+                    <p>This was developed as a project for the Search Engines course, KTH.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col s4 center-align">
+            <div class="card blue-grey darken-1">
+                <div class="card-content white-text">
+                    <h5 class="white-text">Group N1</h5>
+                    <ul>
+                        <li><a class="grey-text text-lighten-3" href="#!">Romina Arriaza - rcab@kth.se</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Vivek Chalumuri - vivekc@kth.se</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Jade Cock - jadec@kth.se</a></li>
+                        <li><a class="grey-text text-lighten-3" href="#!">Stavros Giorgis - giorgis@kth.se</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<footer class="page-footer">
+    <div class="container">
+        <div class="row">
+            <!--<div class="col l6 s12">-->
+            <!--<h5 class="white-text">Group N1</h5>-->
+            <!--<ul>-->
+            <!--<li><a class="grey-text text-lighten-3" href="#!">Romina Arriaza</a></li>-->
+            <!--<li><a class="grey-text text-lighten-3" href="#!">Vivek Chalumuri</a></li>-->
+            <!--<li><a class="grey-text text-lighten-3" href="#!">Jade Cock</a></li>-->
+            <!--<li><a class="grey-text text-lighten-3" href="#!">Stavros Giorgis</a></li>-->
+            <!--</ul>-->
+            <!--</div>-->
+            <!--<div class="col l4 offset-l2 s12">-->
+            <!--<h5 class="white-text">Members</h5>-->
+            <!--</div>-->
+        </div>
+    </div>
+    <div class="footer-copyright">
+        <div class="container">
+            DD2476 ir19 VT19-1 Search Engines and Information Retrieval
+            <!--<a class="grey-text text-lighten-4 right" href="#!">More Links</a>-->
+        </div>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+<script>
+    var app = new Vue({
+        el: '#app',
+        delimiters: ["[[", "]]"],
+        updated: function () {
+            this.$nextTick(function () {
+                PR.prettyPrint();
+            })
+        },
+        methods: {
+            search: function () {
+                this.searching = true;
+                console.log(this.query);
+                console.log(this.checked);
+
+                this.$http.post("/search", {
+                    "query": this.query,
+                    "checked": this.checked
+                }).then(response => {console.log("got new response");
+                console.log(response);
+                //this.response = Object.assign([], this.response, response.body.hits);
+                this.response = response.body.hits;
+                this.response.forEach(function (o) {
+                    // o.html = PR.prettyPrintOne(o.content, "java", true);
+                    var regex = /[\t]/gi;
+                    code = o.content
+                    code = code.replace(regex, "    ")
+                    var regex = /\n/;
+                    code = code.replace("\n", "")
+                    o.html = '<pre class="prettyprint white">' + code + '</pre>';
+                })
+            },
+                response =>
+                {// error callback
+                }
+            )
+                ;
+                this.searching = false;
+                this.finish_search = true;
+            },
+            search2: function () {
+                this.searching = true;
+
+                this.$http.post("/search", {
+                    "query": this.query_str,
+                    "methodName": this.query_method,
+                    "returnType": this.query_out,
+                    "variables": this.query_arg,
+                    "modifiers": this.query_mod,
+                    "checked": this.checked
+                }).then(response => {
+                    console.log("got new response");
+                this.response = response.body.hits;
+                this.response.forEach(function (o) {
+                    // o.html = PR.prettyPrintOne(o.content, "java", true);
+                    var regex = /[\t]/gi;
+                    code = o.content
+                    code = code.replace(regex, "    ")
+                    var regex = /\n/;
+                    code = code.replace("\n", "")
+                    console.log(code)
+                    o.html = '<pre class="prettyprint white">' + code + '</pre>';
+                })
+            },
+                response =>
+                {
+                    // error callback
+                }
+            )
+                ;
+                this.searching = false;
+                this.finish_search = true;
+            }
+        },
+        data: {
+            searching: false,
+            checked: "",
+            query: "",
+            query_method: "",
+            query_out: "",
+            query_arg: "",
+            query_mod: "",
+            response: []
+        }
+    })
+</script>
+<style>
+    .page-footer {
+        padding-top: 20px;
+        color: #00bfa5;
+        background-color: #009688;
+    }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+
+</body>
+</html>
+

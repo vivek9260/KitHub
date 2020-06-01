@@ -1,0 +1,7 @@
+api:
+  port: 8080
+
+elasticsearch:
+  host: localhost
+  port: 9200
+  records: "../GithubSearch/records.json"
