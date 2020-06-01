@@ -1,4 +1,5 @@
-#GitHub Search
+# GitHub Search
+
 ## Project Members: 
    - Jade Cock
    - Vivek Chalumuri
