@@ -2,8 +2,8 @@
 
 ## Project Members: 
    - Jade Cock
-   - Vivek Chalumuri
    - Stavros Giorgis
+   - Vivek Chalumuri
    - Romina Arriaza Barriga 
 
 ## System requirements
