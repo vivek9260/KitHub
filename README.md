@@ -1,5 +1,12 @@
 # GitHub Search
 
+This project is part of the course DD2476, Search Engines and Information Retrieval Systems.
+
+## Abstract 
+
+Reusing existing code can prove to be a precious gain of time. In this project, a subset of all the java repositories publicly available on Github has been crawled, processed and indexed into elastic search. The aim is to build a platform where a user can retrieve their function of interest if it has already been implemented. We evaluate this platform by computing the normalised discounted cumulative gain (nDCG) over three queries of various difficulties and test the user friendliness of the user interface. It is found that enabling the boosting functionality function improves the nDCG in most cases and that the engine is able to retrieve the functions
+of interest in the top results.
+
 ## Project Members: 
    - Jade Cock
    - Stavros Giorgis
